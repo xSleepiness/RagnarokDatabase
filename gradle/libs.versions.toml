@@ -11,6 +11,7 @@ composeBom = "2024.09.00"
 retrofit = "2.9.0"
 gson = "2.10.1"
 coil = "2.5.0"
+navigationCompose = "2.7.5"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -35,6 +36,9 @@ retrofit-gson = { group = "com.squareup.retrofit2", name = "converter-gson", ver
 
 # Coil
 coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
+
+# Navigation
+androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

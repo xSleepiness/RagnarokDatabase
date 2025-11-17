@@ -4,19 +4,19 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 /**
- * Objeto que expone una única instancia de Retrofit configurada para consumir la API de Ragnarok.
- * De esta forma todos los colaboradores (repositorios, pruebas) reutilizan la misma
- * configuración base sin duplicar código.
+ * Object that exposes a single Retrofit instance configured to consume the Ragnarok API.
+ * This way all collaborators (repositories, tests) reuse the same
+ * base configuration without duplicating code.
  */
 object NetworkModule {
 
-    // Para emulador Android: 10.0.2.2 apunta al localhost del host (tu PC)
-    // Para dispositivo físico: usa la IP de tu PC en la red (ej. 192.168.1.42)
+    // For Android emulator: 10.0.2.2 points to the host's localhost (your PC)
+    // For physical device: use your PC's IP on the network (e.g. 192.168.1.42)
     private const val BASE_URL = "http://10.0.2.2:8000/api/v1/"
 
     /**
-     * Retrofit se crea de forma lazy para no inicializar la red hasta que realmente
-     * se necesite. GsonConverterFactory se encarga de mapear JSON ↔ data class.
+     * Retrofit is created lazily to not initialize the network until it's actually
+     * needed. GsonConverterFactory handles mapping JSON ↔ data class.
      */
     val api: RagnarokApiService by lazy {
         Retrofit.Builder()

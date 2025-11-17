@@ -36,6 +36,7 @@ val LilitaOneFont = FontFamily(Font(R.font.lilitaone_regular))
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
+    onItemClick: (Int) -> Unit = {},
     viewModel: MainViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -156,7 +157,10 @@ fun MainScreen(
                 }
                 is MainUiState.Success -> {
                     items(state.items) { item ->
-                        PopularItemCard(item = item)
+                        PopularItemCard(
+                            item = item,
+                            onItemClick = { onItemClick(item.id) }
+                        )
                         Spacer(modifier = Modifier.height(12.dp))
                     }
                 }
@@ -223,12 +227,12 @@ fun PeriodFilterChips(
 }
 
 @Composable
-fun PopularItemCard(item: PopularItem) {
+fun PopularItemCard(item: PopularItem, onItemClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .height(80.dp)
-            .clickable { /* TODO: Navigate to item detail */ },
+            .clickable { onItemClick() },
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
             containerColor = Slate800

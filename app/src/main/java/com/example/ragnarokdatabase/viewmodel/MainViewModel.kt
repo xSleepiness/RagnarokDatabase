@@ -10,8 +10,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 /**
- * ViewModel para la pantalla principal.
- * Maneja el estado de los ítems populares según diferentes períodos de tiempo.
+ * ViewModel for the main screen.
+ * Manages the state of popular items according to different time periods.
  */
 class MainViewModel(
     private val itemRepository: ItemRepository = ItemRepository()
@@ -35,14 +35,22 @@ class MainViewModel(
                 val items = itemRepository.getPopularItems(period, limit = 10)
                 _uiState.value = MainUiState.Success(items)
             } catch (e: Exception) {
-                _uiState.value = MainUiState.Error(e.message ?: "Error desconocido")
+                _uiState.value = MainUiState.Error(e.message ?: "Unknown error")
             }
         }
+    }
+
+    /**
+     * Reloads popular items with the currently selected period.
+     * Useful for refreshing the list after navigating back.
+     */
+    fun refreshCurrentPeriod() {
+        loadPopularItems(_selectedPeriod.value)
     }
 }
 
 /**
- * Estados posibles de la pantalla principal
+ * Possible states of the main screen
  */
 sealed class MainUiState {
     object Loading : MainUiState()

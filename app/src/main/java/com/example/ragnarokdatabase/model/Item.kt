@@ -2,6 +2,13 @@ package com.example.ragnarokdatabase.model
 
 import com.google.gson.annotations.SerializedName
 
+/**
+ * Base URL for image endpoints
+ * Note: For Android emulator, 10.0.2.2 points to localhost on the host machine
+ * Images are served under /api/v1
+ */
+private const val BASE_URL = "http://10.0.2.2:8000/api/v1"
+
 data class Item(
     @SerializedName("id")
     val id: Int,
@@ -31,7 +38,7 @@ data class Item(
     val requiredLevel: Int,
 
     @SerializedName("required_job")
-    val requiredJob: String?,
+    val requiredJob: List<String>?,
 
     @SerializedName("gender")
     val gender: String?,
@@ -40,8 +47,27 @@ data class Item(
     val location: String?,
 
     @SerializedName("sprite")
-    val sprite: String
-)
+    val sprite: String,
+
+    @SerializedName("script")
+    val script: String?,
+
+    @SerializedName("equip_script")
+    val equipScript: String?,
+
+    @SerializedName("unequip_script")
+    val unequipScript: String?
+) {
+    fun getIconUrl(): String = "$BASE_URL/items/images/item/$id.png"
+    fun getCollectionImageUrl(): String = "$BASE_URL/items/images/collection/$id.png"
+
+    /**
+     * Returns the required jobs as a comma-separated string, or null if no jobs required
+     */
+    fun getRequiredJobsText(): String? {
+        return requiredJob?.joinToString(", ")
+    }
+}
 
 data class ItemStats(
     @SerializedName("atk")
@@ -76,7 +102,7 @@ data class PopularItem(
     @SerializedName("sprite")
     val sprite: String? = null
 ) {
-    fun getIconUrl(): String = "https://static.divine-pride.net/images/items/item/$id.png"
+    fun getIconUrl(): String = "$BASE_URL/items/images/item/$id.png"
 }
 
 data class PopularItemsResponse(

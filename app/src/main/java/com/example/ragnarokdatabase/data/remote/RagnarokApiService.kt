@@ -8,29 +8,29 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 /**
- * Declaración de los endpoints que usamos de la API de Ragnarok.
- * Retrofit genera la implementación concreta en base a esta interfaz.
+ * Declaration of the endpoints we use from the Ragnarok API.
+ * Retrofit generates the concrete implementation based on this interface.
  */
 interface RagnarokApiService {
 
     /**
-     * Recupera el detalle de un item por su ID.
-     * La API acepta el identificador numérico en el endpoint.
+     * Retrieves the details of an item by its ID.
+     * The API accepts the numeric identifier in the endpoint.
      */
     @GET("items/{id}")
     suspend fun getItem(@Path("id") itemId: Int): Item
 
     /**
-     * Recupera el detalle de un monstruo por su ID.
-     * La API acepta el identificador numérico en el endpoint.
+     * Retrieves the details of a monster by its ID.
+     * The API accepts the numeric identifier in the endpoint.
      */
     @GET("monsters/{id}")
     suspend fun getMonster(@Path("id") monsterId: Int): Monster
 
     /**
-     * Obtiene los ítems populares según el período de tiempo especificado.
-     * period puede ser: today, yesterday, last7days, last30days
-     * limit controla cuántos elementos trae la respuesta (por defecto 10)
+     * Gets popular items according to the specified time period.
+     * period can be: today, yesterday, last7days, last30days
+     * limit controls how many items the response brings (default 10)
      */
     @GET("items/popular/{period}")
     suspend fun getPopularItems(
