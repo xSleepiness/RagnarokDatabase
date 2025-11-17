@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.io.File
 
 /**
  * ViewModel for the item detail screen.
@@ -19,6 +20,9 @@ class ItemDetailViewModel(
 
     private val _uiState = MutableStateFlow<ItemDetailUiState>(ItemDetailUiState.Loading)
     val uiState: StateFlow<ItemDetailUiState> = _uiState.asStateFlow()
+
+    private val _uploadState = MutableStateFlow<ImageUploadState>(ImageUploadState.Idle)
+    val uploadState: StateFlow<ImageUploadState> = _uploadState.asStateFlow()
 
     fun loadItemDetail(itemId: Int) {
         viewModelScope.launch {
@@ -35,6 +39,41 @@ class ItemDetailViewModel(
             }
         }
     }
+
+    fun uploadCollectionImage(itemId: Int, imageFile: File) {
+        viewModelScope.launch {
+            _uploadState.value = ImageUploadState.Uploading
+            try {
+                val updatedItem = itemRepository.uploadCollectionImage(itemId, imageFile)
+
+                // Small delay to ensure the backend has saved the image
+                kotlinx.coroutines.delay(500)
+
+                _uploadState.value = ImageUploadState.Success
+
+                // Force reload by fetching the item again
+                // This ensures we get fresh data and triggers image reload
+                try {
+                    val refreshedItem = itemRepository.getItem(itemId)
+                    _uiState.value = ItemDetailUiState.Success(refreshedItem)
+                } catch (e: Exception) {
+                    // If refresh fails, still show success with the updated item
+                    _uiState.value = ItemDetailUiState.Success(updatedItem)
+                }
+            } catch (e: Exception) {
+                val errorMessage = when {
+                    e.message?.contains("404") == true -> "Item not found"
+                    e.message?.contains("HTTP") == true -> "Network error. Please try again."
+                    else -> e.message ?: "Unknown error"
+                }
+                _uploadState.value = ImageUploadState.Error(errorMessage)
+            }
+        }
+    }
+
+    fun resetUploadState() {
+        _uploadState.value = ImageUploadState.Idle
+    }
 }
 
 /**
@@ -45,5 +84,15 @@ sealed class ItemDetailUiState {
     object NotFound : ItemDetailUiState()
     data class Success(val item: Item) : ItemDetailUiState()
     data class Error(val message: String) : ItemDetailUiState()
+}
+
+/**
+ * Possible states of image upload
+ */
+sealed class ImageUploadState {
+    object Idle : ImageUploadState()
+    object Uploading : ImageUploadState()
+    object Success : ImageUploadState()
+    data class Error(val message: String) : ImageUploadState()
 }
 

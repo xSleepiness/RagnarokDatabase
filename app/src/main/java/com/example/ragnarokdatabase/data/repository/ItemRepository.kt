@@ -4,6 +4,10 @@ import com.example.ragnarokdatabase.data.remote.NetworkModule
 import com.example.ragnarokdatabase.data.remote.RagnarokApiService
 import com.example.ragnarokdatabase.model.Item
 import com.example.ragnarokdatabase.model.PopularItem
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import java.io.File
 
 /**
  * Encapsulates network access so that the rest of the layers don't know
@@ -35,6 +39,22 @@ class ItemRepository(
      */
     suspend fun searchItems(query: String, limit: Int = 50): List<Item> {
         return api.searchItems(query, limit)
+    }
+
+    /**
+     * Uploads a collection image for an item.
+     * @param itemId The ID of the item
+     * @param imageFile The PNG file to upload
+     * @return Updated Item with new image
+     */
+    suspend fun uploadCollectionImage(itemId: Int, imageFile: File): Item {
+        val requestBody = imageFile.asRequestBody("image/png".toMediaTypeOrNull())
+        val multipartBody = MultipartBody.Part.createFormData(
+            "file",
+            imageFile.name,
+            requestBody
+        )
+        return api.uploadCollectionImage(itemId, multipartBody)
     }
 }
 

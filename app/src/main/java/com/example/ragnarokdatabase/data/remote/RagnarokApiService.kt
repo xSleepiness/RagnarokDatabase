@@ -3,7 +3,11 @@ package com.example.ragnarokdatabase.data.remote
 import com.example.ragnarokdatabase.model.Item
 import com.example.ragnarokdatabase.model.Monster
 import com.example.ragnarokdatabase.model.PopularItemsResponse
+import okhttp3.MultipartBody
 import retrofit2.http.GET
+import retrofit2.http.Multipart
+import retrofit2.http.PUT
+import retrofit2.http.Part
 import retrofit2.http.Path
 import retrofit2.http.Query
 
@@ -49,6 +53,17 @@ interface RagnarokApiService {
         @Query("query") query: String,
         @Query("limit") limit: Int = 50
     ): List<Item>
+
+    /**
+     * Upload collection image for an item.
+     * Only accepts PNG files.
+     */
+    @Multipart
+    @PUT("items/{item_id}/images/collection")
+    suspend fun uploadCollectionImage(
+        @Path("item_id") itemId: Int,
+        @Part file: MultipartBody.Part
+    ): Item
 }
 
 

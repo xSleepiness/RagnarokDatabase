@@ -59,7 +59,15 @@ data class Item(
     val unequipScript: String?
 ) {
     fun getIconUrl(): String = "$BASE_URL/items/images/item/$id.png"
-    fun getCollectionImageUrl(): String = "$BASE_URL/items/images/collection/$id.png"
+
+    /**
+     * Returns the collection image URL with a timestamp to bypass cache
+     * This ensures that when an image is updated, the new version is loaded
+     */
+    fun getCollectionImageUrl(): String {
+        val timestamp = System.currentTimeMillis()
+        return "$BASE_URL/items/images/collection/$id.png?t=$timestamp"
+    }
 
     /**
      * Returns the required jobs as a comma-separated string, or null if no jobs required

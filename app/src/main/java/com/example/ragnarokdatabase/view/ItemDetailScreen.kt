@@ -1,5 +1,9 @@
 package com.example.ragnarokdatabase.view
 
+import android.content.Context
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -7,22 +11,32 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.core.content.FileProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.example.ragnarokdatabase.model.Item
 import com.example.ragnarokdatabase.ui.theme.*
+import com.example.ragnarokdatabase.viewmodel.ImageUploadState
 import com.example.ragnarokdatabase.viewmodel.ItemDetailUiState
 import com.example.ragnarokdatabase.viewmodel.ItemDetailViewModel
+import java.io.File
+import java.io.FileOutputStream
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -64,7 +78,8 @@ fun ItemDetailScreen(
             is ItemDetailUiState.Success -> {
                 ItemDetailContent(
                     item = state.item,
-                    onNavigateBack = onNavigateBack
+                    onNavigateBack = onNavigateBack,
+                    viewModel = viewModel
                 )
             }
             is ItemDetailUiState.Error -> {
@@ -81,8 +96,67 @@ fun ItemDetailScreen(
 @Composable
 fun ItemDetailContent(
     item: Item,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    viewModel: ItemDetailViewModel
 ) {
+    val context = LocalContext.current
+    val uploadState by viewModel.uploadState.collectAsState()
+    var showImageOptions by remember { mutableStateOf(false) }
+    var tempPhotoUri by rememberSaveable { mutableStateOf<String?>(null) }
+
+    // Permission launcher
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            showImageOptions = true
+        }
+    }
+
+    // Camera launcher
+    val cameraLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success && tempPhotoUri != null) {
+            try {
+                val uri = Uri.parse(tempPhotoUri)
+                val file = uriToFile(context, uri)
+                if (file != null) {
+                    viewModel.uploadCollectionImage(item.id, file)
+                } else {
+                    viewModel.resetUploadState()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                viewModel.resetUploadState()
+            }
+        }
+    }
+
+    // Gallery launcher
+    val galleryLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let {
+            val file = uriToFile(context, it)
+            if (file != null) {
+                viewModel.uploadCollectionImage(item.id, file)
+            }
+        }
+    }
+
+    // Show success/error snackbar
+    LaunchedEffect(uploadState) {
+        when (uploadState) {
+            is ImageUploadState.Success -> {
+                // Reset state after showing success
+                kotlinx.coroutines.delay(2000)
+                viewModel.resetUploadState()
+            }
+            else -> {}
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -114,12 +188,153 @@ fun ItemDetailContent(
             contentAlignment = Alignment.Center
         ) {
             AsyncImage(
-                model = item.getCollectionImageUrl(),
+                model = ImageRequest.Builder(context)
+                    .data(item.getCollectionImageUrl())
+                    .crossfade(true)
+                    .build(),
                 contentDescription = item.name,
                 modifier = Modifier
                     .size(200.dp)
                     .clip(RoundedCornerShape(16.dp)),
                 contentScale = ContentScale.Fit
+            )
+
+            // Upload image button
+            FloatingActionButton(
+                onClick = {
+                    permissionLauncher.launch(android.Manifest.permission.CAMERA)
+                },
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(16.dp),
+                containerColor = Amber400
+            ) {
+                if (uploadState is ImageUploadState.Uploading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = Slate900
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Update Image",
+                        tint = Slate900
+                    )
+                }
+            }
+
+            // Success indicator
+            if (uploadState is ImageUploadState.Success) {
+                Card(
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(16.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Amber400
+                    )
+                ) {
+                    Text(
+                        text = "Image updated successfully!",
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                        color = Slate900,
+                        style = MaterialTheme.typography.labelMedium
+                    )
+                }
+            }
+
+            // Error indicator
+            if (uploadState is ImageUploadState.Error) {
+                Card(
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(16.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Red400
+                    )
+                ) {
+                    Text(
+                        text = (uploadState as ImageUploadState.Error).message,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                        color = Slate100,
+                        style = MaterialTheme.typography.labelMedium
+                    )
+                }
+            }
+        }
+
+        // Image options dialog
+        if (showImageOptions) {
+            AlertDialog(
+                onDismissRequest = { showImageOptions = false },
+                title = {
+                    Text(
+                        text = "Update Image",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontFamily = LilitaOneFont
+                        )
+                    )
+                },
+                text = {
+                    Text("Choose how to update the item image")
+                },
+                confirmButton = {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        Button(
+                            onClick = {
+                                showImageOptions = false
+                                try {
+                                    val photoFile = createImageFile(context)
+                                    val uri = FileProvider.getUriForFile(
+                                        context,
+                                        "${context.packageName}.fileprovider",
+                                        photoFile
+                                    )
+                                    tempPhotoUri = uri.toString()
+                                    cameraLauncher.launch(uri)
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                }
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Amber400
+                            )
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Edit,
+                                contentDescription = "Camera",
+                                tint = Slate900
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Camera", color = Slate900)
+                        }
+
+                        Button(
+                            onClick = {
+                                showImageOptions = false
+                                galleryLauncher.launch("image/*")
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Slate700
+                            )
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.MoreVert,
+                                contentDescription = "Gallery",
+                                tint = Slate100
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Gallery", color = Slate100)
+                        }
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showImageOptions = false }) {
+                        Text("Cancel")
+                    }
+                }
             )
         }
 
@@ -528,3 +743,54 @@ fun ErrorContent(
     }
 }
 
+/**
+ * Creates a temporary file for camera photo
+ */
+private fun createImageFile(context: Context): File {
+    val timestamp = System.currentTimeMillis()
+    val storageDir = context.externalCacheDir ?: context.cacheDir
+
+    // Ensure directory exists
+    if (!storageDir.exists()) {
+        storageDir.mkdirs()
+    }
+
+    return File.createTempFile(
+        "IMG_${timestamp}_",
+        ".jpg",
+        storageDir
+    )
+}
+
+/**
+ * Converts a URI to a File, handling both camera and gallery sources
+ * Converts the image to PNG format as required by the API
+ */
+private fun uriToFile(context: Context, uri: Uri): File? {
+    return try {
+        val inputStream = context.contentResolver.openInputStream(uri) ?: return null
+
+        // Create a temporary PNG file
+        val tempFile = File(
+            context.cacheDir,
+            "upload_${System.currentTimeMillis()}.png"
+        )
+
+        inputStream.use { input ->
+            FileOutputStream(tempFile).use { output ->
+                input.copyTo(output)
+            }
+        }
+
+        // Verify file was created and has content
+        if (tempFile.exists() && tempFile.length() > 0) {
+            tempFile
+        } else {
+            tempFile.delete()
+            null
+        }
+    } catch (e: Exception) {
+        e.printStackTrace()
+        null
+    }
+}
