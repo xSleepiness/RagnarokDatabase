@@ -12,6 +12,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.ragnarokdatabase.view.ItemDetailScreen
 import com.example.ragnarokdatabase.view.MainScreen
+import com.example.ragnarokdatabase.view.SearchScreen
 import com.example.ragnarokdatabase.viewmodel.MainViewModel
 
 /**
@@ -19,6 +20,9 @@ import com.example.ragnarokdatabase.viewmodel.MainViewModel
  */
 sealed class Screen(val route: String) {
     object Main : Screen("main")
+    object Search : Screen("search?query={query}") {
+        fun createRoute(query: String = "") = "search?query=$query"
+    }
     object ItemDetail : Screen("item/{itemId}") {
         fun createRoute(itemId: Int) = "item/$itemId"
     }
@@ -75,7 +79,56 @@ fun RagnarokNavHost(
                 onItemClick = { itemId ->
                     navController.navigate(Screen.ItemDetail.createRoute(itemId))
                 },
+                onSearchClick = { query ->
+                    navController.navigate(Screen.Search.createRoute(query))
+                },
                 viewModel = mainViewModel
+            )
+        }
+
+        composable(
+            route = Screen.Search.route,
+            arguments = listOf(
+                navArgument("query") {
+                    type = NavType.StringType
+                    defaultValue = ""
+                    nullable = true
+                }
+            ),
+            enterTransition = {
+                slideIntoContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Start,
+                    animationSpec = tween(300)
+                )
+            },
+            exitTransition = {
+                slideOutOfContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Start,
+                    animationSpec = tween(300)
+                )
+            },
+            popEnterTransition = {
+                slideIntoContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.End,
+                    animationSpec = tween(300)
+                )
+            },
+            popExitTransition = {
+                slideOutOfContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.End,
+                    animationSpec = tween(300)
+                )
+            }
+        ) { backStackEntry ->
+            val initialQuery = backStackEntry.arguments?.getString("query") ?: ""
+            SearchScreen(
+                initialQuery = initialQuery,
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onItemClick = { itemId ->
+                    navController.navigate(Screen.ItemDetail.createRoute(itemId))
+                }
             )
         }
 

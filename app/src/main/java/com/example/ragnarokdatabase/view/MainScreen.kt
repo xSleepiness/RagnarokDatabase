@@ -12,13 +12,17 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -37,11 +41,13 @@ val LilitaOneFont = FontFamily(Font(R.font.lilitaone_regular))
 @Composable
 fun MainScreen(
     onItemClick: (Int) -> Unit = {},
+    onSearchClick: (String) -> Unit = {},
     viewModel: MainViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val selectedPeriod by viewModel.selectedPeriod.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
+    val focusManager = LocalFocusManager.current
 
     Box(
         modifier = Modifier
@@ -112,7 +118,21 @@ fun MainScreen(
                         unfocusedBorderColor = Slate600,
                         cursorColor = Amber400
                     ),
-                    shape = RoundedCornerShape(16.dp)
+                    shape = RoundedCornerShape(16.dp),
+                    keyboardOptions = KeyboardOptions(
+                        imeAction = ImeAction.Search
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onSearch = {
+                            if (searchQuery.isNotEmpty()) {
+                                focusManager.clearFocus()
+                                val query = searchQuery
+                                searchQuery = "" // Reset after capturing
+                                onSearchClick(query)
+                            }
+                        }
+                    ),
+                    singleLine = true
                 )
 
                 Spacer(modifier = Modifier.height(40.dp))

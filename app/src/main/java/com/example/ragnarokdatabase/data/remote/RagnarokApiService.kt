@@ -37,6 +37,18 @@ interface RagnarokApiService {
         @Path("period") period: String,
         @Query("limit") limit: Int = 10
     ): PopularItemsResponse
+
+    /**
+     * Universal search for items.
+     * If query is a number → searches by ID
+     * If query is text → partial search by name (case-insensitive)
+     * limit controls how many items the response brings (default 50, max 500)
+     */
+    @GET("items/search")
+    suspend fun searchItems(
+        @Query("query") query: String,
+        @Query("limit") limit: Int = 50
+    ): List<Item>
 }
 
 

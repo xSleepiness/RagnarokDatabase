@@ -58,6 +58,9 @@ fun ItemDetailScreen(
                     CircularProgressIndicator(color = Amber400)
                 }
             }
+            is ItemDetailUiState.NotFound -> {
+                NotFoundContent(onNavigateBack = onNavigateBack)
+            }
             is ItemDetailUiState.Success -> {
                 ItemDetailContent(
                     item = state.item,
@@ -434,6 +437,60 @@ fun RequirementRow(label: String, value: String) {
             ),
             color = Amber400
         )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun NotFoundContent(
+    onNavigateBack: () -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        TopAppBar(
+            title = { },
+            navigationIcon = {
+                IconButton(onClick = onNavigateBack) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back",
+                        tint = Slate200
+                    )
+                }
+            },
+            colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = Slate900.copy(alpha = 0.95f)
+            )
+        )
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = "Item not found",
+                    style = MaterialTheme.typography.displaySmall.copy(
+                        fontFamily = LilitaOneFont
+                    ),
+                    color = Slate400,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "The item you're looking for doesn't exist",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = Slate500,
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
     }
 }
 

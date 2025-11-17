@@ -27,7 +27,11 @@ class ItemDetailViewModel(
                 val item = itemRepository.getItem(itemId)
                 _uiState.value = ItemDetailUiState.Success(item)
             } catch (e: Exception) {
-                _uiState.value = ItemDetailUiState.Error(e.message ?: "Unknown error")
+                _uiState.value = when {
+                    e.message?.contains("404") == true -> ItemDetailUiState.NotFound
+                    e.message?.contains("HTTP") == true -> ItemDetailUiState.Error("Network error. Please try again.")
+                    else -> ItemDetailUiState.Error(e.message ?: "Unknown error")
+                }
             }
         }
     }
@@ -38,6 +42,7 @@ class ItemDetailViewModel(
  */
 sealed class ItemDetailUiState {
     object Loading : ItemDetailUiState()
+    object NotFound : ItemDetailUiState()
     data class Success(val item: Item) : ItemDetailUiState()
     data class Error(val message: String) : ItemDetailUiState()
 }

@@ -27,5 +27,14 @@ class ItemRepository(
     suspend fun getPopularItems(period: String, limit: Int = 10): List<PopularItem> {
         return api.getPopularItems(period, limit).items
     }
+
+    /**
+     * Searches for items by query (ID or name).
+     * If query is a number, searches by ID.
+     * If query is text, performs partial search by name.
+     */
+    suspend fun searchItems(query: String, limit: Int = 50): List<Item> {
+        return api.searchItems(query, limit)
+    }
 }
 

@@ -35,7 +35,12 @@ class MainViewModel(
                 val items = itemRepository.getPopularItems(period, limit = 10)
                 _uiState.value = MainUiState.Success(items)
             } catch (e: Exception) {
-                _uiState.value = MainUiState.Error(e.message ?: "Unknown error")
+                val errorMessage = when {
+                    e.message?.contains("404") == true -> "Popular items not found"
+                    e.message?.contains("HTTP") == true -> "Network error. Please try again."
+                    else -> e.message ?: "Unknown error"
+                }
+                _uiState.value = MainUiState.Error(errorMessage)
             }
         }
     }
