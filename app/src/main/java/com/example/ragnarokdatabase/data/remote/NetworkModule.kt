@@ -12,7 +12,17 @@ object NetworkModule {
 
     // For Android emulator: 10.0.2.2 points to the host's localhost (your PC)
     // For physical device: use your PC's IP on the network (e.g. 192.168.1.42)
-    private const val BASE_URL = "http://10.0.2.2:8000/api/v1/"
+    private const val BASE_URL = "http://64.176.16.51:8000/api/v1/"
+
+    /**
+     * Returns the base URL for API endpoints (includes /api/v1/)
+     */
+    internal const val API_BASE_URL = BASE_URL
+
+    /**
+     * Returns the base URL for images (without /api/v1/)
+     */
+    internal const val IMAGE_BASE_URL = "http://64.176.16.51:8000/api/v1"
 
     /**
      * Retrofit is created lazily to not initialize the network until it's actually

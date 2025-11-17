@@ -1,13 +1,7 @@
 package com.example.ragnarokdatabase.model
 
+import com.example.ragnarokdatabase.data.remote.NetworkModule
 import com.google.gson.annotations.SerializedName
-
-/**
- * Base URL for image endpoints
- * Note: For Android emulator, 10.0.2.2 points to localhost on the host machine
- * Images are served under /api/v1
- */
-private const val BASE_URL = "http://10.0.2.2:8000/api/v1"
 
 data class Item(
     @SerializedName("id")
@@ -58,7 +52,7 @@ data class Item(
     @SerializedName("unequip_script")
     val unequipScript: String?
 ) {
-    fun getIconUrl(): String = "$BASE_URL/items/images/item/$id.png"
+    fun getIconUrl(): String = "${NetworkModule.IMAGE_BASE_URL}/items/images/item/$id.png"
 
     /**
      * Returns the collection image URL with a timestamp to bypass cache
@@ -66,7 +60,7 @@ data class Item(
      */
     fun getCollectionImageUrl(): String {
         val timestamp = System.currentTimeMillis()
-        return "$BASE_URL/items/images/collection/$id.png?t=$timestamp"
+        return "${NetworkModule.IMAGE_BASE_URL}/items/images/collection/$id.png?t=$timestamp"
     }
 
     /**
@@ -110,7 +104,7 @@ data class PopularItem(
     @SerializedName("sprite")
     val sprite: String? = null
 ) {
-    fun getIconUrl(): String = "$BASE_URL/items/images/item/$id.png"
+    fun getIconUrl(): String = "${NetworkModule.IMAGE_BASE_URL}/items/images/item/$id.png"
 }
 
 data class PopularItemsResponse(
