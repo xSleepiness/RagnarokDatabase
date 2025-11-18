@@ -14,6 +14,7 @@ import com.example.ragnarokdatabase.view.ItemDetailScreen
 import com.example.ragnarokdatabase.view.MainScreen
 import com.example.ragnarokdatabase.view.SearchScreen
 import com.example.ragnarokdatabase.viewmodel.MainViewModel
+import com.example.ragnarokdatabase.viewmodel.SearchViewModel
 
 /**
  * Definition of the application's navigation routes
@@ -121,6 +122,7 @@ fun RagnarokNavHost(
             }
         ) { backStackEntry ->
             val initialQuery = backStackEntry.arguments?.getString("query") ?: ""
+            val searchViewModel: SearchViewModel = viewModel(viewModelStoreOwner = backStackEntry)
             SearchScreen(
                 initialQuery = initialQuery,
                 onNavigateBack = {
@@ -128,7 +130,8 @@ fun RagnarokNavHost(
                 },
                 onItemClick = { itemId ->
                     navController.navigate(Screen.ItemDetail.createRoute(itemId))
-                }
+                },
+                viewModel = searchViewModel
             )
         }
 

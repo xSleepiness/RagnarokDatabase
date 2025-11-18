@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -33,14 +34,14 @@ fun SearchScreen(
     initialQuery: String = "",
     onNavigateBack: () -> Unit,
     onItemClick: (Int) -> Unit,
-    viewModel: SearchViewModel = viewModel()
+    viewModel: SearchViewModel
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
 
-    // Set initial query and trigger search if provided
-    LaunchedEffect(initialQuery) {
-        if (initialQuery.isNotEmpty()) {
+    // Set initial query and trigger search if provided (only once on first composition)
+    LaunchedEffect(Unit) {
+        if (initialQuery.isNotEmpty() && searchQuery.isEmpty()) {
             viewModel.onSearchQueryChanged(initialQuery)
         }
     }
@@ -262,7 +263,10 @@ fun SearchResultsList(
     items: List<Item>,
     onItemClick: (Int) -> Unit
 ) {
+    val listState = rememberLazyListState()
+    
     LazyColumn(
+        state = listState,
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 24.dp),

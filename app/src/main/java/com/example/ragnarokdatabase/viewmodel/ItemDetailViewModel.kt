@@ -45,12 +45,12 @@ class ItemDetailViewModel(
             _uploadState.value = ImageUploadState.Uploading
             try {
                 val updatedItem = itemRepository.uploadCollectionImage(itemId, imageFile)
-
+                
                 // Small delay to ensure the backend has saved the image
                 kotlinx.coroutines.delay(500)
-
+                
                 _uploadState.value = ImageUploadState.Success
-
+                
                 // Force reload by fetching the item again
                 // This ensures we get fresh data and triggers image reload
                 try {
