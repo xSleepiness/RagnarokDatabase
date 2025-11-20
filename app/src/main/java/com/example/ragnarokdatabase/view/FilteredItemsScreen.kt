@@ -216,8 +216,14 @@ fun FilteredItemCard(
             Column(
                 modifier = Modifier.weight(1f)
             ) {
+                val displayName = if (item.stats.slots > 0) {
+                    "${item.name} [${item.stats.slots}]"
+                } else {
+                    item.name
+                }
+
                 Text(
-                    text = item.name,
+                    text = displayName,
                     style = MaterialTheme.typography.titleMedium,
                     color = Slate100,
                     maxLines = 1,
