@@ -23,8 +23,12 @@ class MainViewModel(
     private val _selectedPeriod = MutableStateFlow("today")
     val selectedPeriod: StateFlow<String> = _selectedPeriod.asStateFlow()
 
+    private val _totalItemsCount = MutableStateFlow<Int?>(null)
+    val totalItemsCount: StateFlow<Int?> = _totalItemsCount.asStateFlow()
+
     init {
         loadPopularItems("today")
+        loadTotalItemsCount()
     }
 
     fun loadPopularItems(period: String) {
@@ -51,6 +55,21 @@ class MainViewModel(
      */
     fun refreshCurrentPeriod() {
         loadPopularItems(_selectedPeriod.value)
+    }
+
+    /**
+     * Loads the total count of items in the database.
+     */
+    private fun loadTotalItemsCount() {
+        viewModelScope.launch {
+            try {
+                val count = itemRepository.getItemCount()
+                _totalItemsCount.value = count
+            } catch (e: Exception) {
+                // If there's an error, we just keep the count as null
+                _totalItemsCount.value = null
+            }
+        }
     }
 }
 

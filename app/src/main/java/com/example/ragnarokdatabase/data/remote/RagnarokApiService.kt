@@ -1,6 +1,7 @@
 package com.example.ragnarokdatabase.data.remote
 
 import com.example.ragnarokdatabase.model.Item
+import com.example.ragnarokdatabase.model.ItemCountResponse
 import com.example.ragnarokdatabase.model.Monster
 import com.example.ragnarokdatabase.model.PopularItemsResponse
 import okhttp3.MultipartBody
@@ -64,6 +65,12 @@ interface RagnarokApiService {
         @Path("item_id") itemId: Int,
         @Part file: MultipartBody.Part
     ): Item
+
+    /**
+     * Gets the total count of items in the database.
+     */
+    @GET("items/count")
+    suspend fun getItemCount(): ItemCountResponse
 }
 
 

@@ -46,6 +46,7 @@ fun MainScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val selectedPeriod by viewModel.selectedPeriod.collectAsState()
+    val totalItemsCount by viewModel.totalItemsCount.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
     val focusManager = LocalFocusManager.current
 
@@ -136,6 +137,25 @@ fun MainScreen(
                 )
 
                 Spacer(modifier = Modifier.height(40.dp))
+
+                // Total Items Count Card
+                totalItemsCount?.let { count ->
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        color = Slate800,
+                        tonalElevation = 2.dp
+                    ) {
+                        Text(
+                            text = "There exist $count items in the database.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Slate200,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(24.dp))
+                }
 
                 // Popular Items Section
                 Text(

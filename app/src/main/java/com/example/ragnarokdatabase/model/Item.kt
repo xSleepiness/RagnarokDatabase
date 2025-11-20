@@ -115,3 +115,8 @@ data class PopularItemsResponse(
     val items: List<PopularItem>
 )
 
+data class ItemCountResponse(
+    @SerializedName("total_items")
+    val totalItems: Int
+)
+

@@ -56,5 +56,12 @@ class ItemRepository(
         )
         return api.uploadCollectionImage(itemId, multipartBody)
     }
+
+    /**
+     * Gets the total count of items in the database.
+     */
+    suspend fun getItemCount(): Int {
+        return api.getItemCount().totalItems
+    }
 }
 
