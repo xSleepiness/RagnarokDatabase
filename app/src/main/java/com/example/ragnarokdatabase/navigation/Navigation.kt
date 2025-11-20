@@ -10,6 +10,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.example.ragnarokdatabase.view.FilteredItemsScreen
 import com.example.ragnarokdatabase.view.ItemDetailScreen
 import com.example.ragnarokdatabase.view.MainScreen
 import com.example.ragnarokdatabase.view.SearchScreen
@@ -26,6 +27,9 @@ sealed class Screen(val route: String) {
     }
     object ItemDetail : Screen("item/{itemId}") {
         fun createRoute(itemId: Int) = "item/$itemId"
+    }
+    object FilteredItems : Screen("filter/{itemType}") {
+        fun createRoute(itemType: String) = "filter/$itemType"
     }
 }
 
@@ -83,6 +87,9 @@ fun RagnarokNavHost(
                 onSearchClick = { query ->
                     navController.navigate(Screen.Search.createRoute(query))
                 },
+                onTypeFilterClick = { itemType ->
+                    navController.navigate(Screen.FilteredItems.createRoute(itemType))
+                },
                 viewModel = mainViewModel
             )
         }
@@ -128,10 +135,19 @@ fun RagnarokNavHost(
                 onNavigateBack = {
                     navController.popBackStack()
                 },
+                onHomeClick = {
+                    navController.navigate(Screen.Main.route) {
+                        popUpTo(Screen.Main.route) { inclusive = true }
+                    }
+                },
+                onTypeFilterClick = { type ->
+                    navController.navigate(Screen.FilteredItems.createRoute(type))
+                },
                 onItemClick = { itemId ->
                     navController.navigate(Screen.ItemDetail.createRoute(itemId))
                 },
-                viewModel = searchViewModel
+                viewModel = searchViewModel,
+                mainViewModel = mainViewModel
             )
         }
 
@@ -172,7 +188,74 @@ fun RagnarokNavHost(
                 itemId = itemId,
                 onNavigateBack = {
                     navController.popBackStack()
+                },
+                onHomeClick = {
+                    navController.navigate(Screen.Main.route) {
+                        popUpTo(Screen.Main.route) { inclusive = true }
+                    }
+                },
+                onTypeFilterClick = { type ->
+                    navController.navigate(Screen.FilteredItems.createRoute(type))
+                },
+                mainViewModel = mainViewModel
+            )
+        }
+
+        composable(
+            route = Screen.FilteredItems.route,
+            arguments = listOf(
+                navArgument("itemType") {
+                    type = NavType.StringType
                 }
+            ),
+            enterTransition = {
+                slideIntoContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Start,
+                    animationSpec = tween(300)
+                )
+            },
+            exitTransition = {
+                slideOutOfContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Start,
+                    animationSpec = tween(300)
+                )
+            },
+            popEnterTransition = {
+                slideIntoContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.End,
+                    animationSpec = tween(300)
+                )
+            },
+            popExitTransition = {
+                slideOutOfContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.End,
+                    animationSpec = tween(300)
+                )
+            }
+        ) { backStackEntry ->
+            val itemType = backStackEntry.arguments?.getString("itemType") ?: ""
+            val filterViewModel: com.example.ragnarokdatabase.viewmodel.FilterViewModel =
+                viewModel(viewModelStoreOwner = backStackEntry)
+            FilteredItemsScreen(
+                itemType = itemType,
+                onItemClick = { itemId ->
+                    navController.navigate(Screen.ItemDetail.createRoute(itemId))
+                },
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onHomeClick = {
+                    navController.navigate(Screen.Main.route) {
+                        popUpTo(Screen.Main.route) { inclusive = true }
+                    }
+                },
+                onTypeFilterClick = { type ->
+                    navController.navigate(Screen.FilteredItems.createRoute(type)) {
+                        popUpTo(Screen.FilteredItems.route) { inclusive = true }
+                    }
+                },
+                viewModel = filterViewModel,
+                mainViewModel = mainViewModel
             )
         }
     }

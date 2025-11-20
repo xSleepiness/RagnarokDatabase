@@ -3,6 +3,7 @@ package com.example.ragnarokdatabase.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.ragnarokdatabase.data.repository.ItemRepository
+import com.example.ragnarokdatabase.model.ItemType
 import com.example.ragnarokdatabase.model.PopularItem
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -26,9 +27,13 @@ class MainViewModel(
     private val _totalItemsCount = MutableStateFlow<Int?>(null)
     val totalItemsCount: StateFlow<Int?> = _totalItemsCount.asStateFlow()
 
+    private val _itemTypes = MutableStateFlow<List<ItemType>>(emptyList())
+    val itemTypes: StateFlow<List<ItemType>> = _itemTypes.asStateFlow()
+
     init {
         loadPopularItems("today")
         loadTotalItemsCount()
+        loadItemTypes()
     }
 
     fun loadPopularItems(period: String) {
@@ -68,6 +73,21 @@ class MainViewModel(
             } catch (e: Exception) {
                 // If there's an error, we just keep the count as null
                 _totalItemsCount.value = null
+            }
+        }
+    }
+
+    /**
+     * Loads all available item types.
+     */
+    private fun loadItemTypes() {
+        viewModelScope.launch {
+            try {
+                val types = itemRepository.getItemTypes()
+                _itemTypes.value = types
+            } catch (e: Exception) {
+                // If there's an error, we just keep an empty list
+                _itemTypes.value = emptyList()
             }
         }
     }

@@ -32,9 +32,11 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.ragnarokdatabase.model.Item
 import com.example.ragnarokdatabase.ui.theme.*
+import com.example.ragnarokdatabase.view.components.AppTopBar
 import com.example.ragnarokdatabase.viewmodel.ImageUploadState
 import com.example.ragnarokdatabase.viewmodel.ItemDetailUiState
 import com.example.ragnarokdatabase.viewmodel.ItemDetailViewModel
+import com.example.ragnarokdatabase.viewmodel.MainViewModel
 import java.io.File
 import java.io.FileOutputStream
 
@@ -43,26 +45,44 @@ import java.io.FileOutputStream
 fun ItemDetailScreen(
     itemId: Int,
     onNavigateBack: () -> Unit,
-    viewModel: ItemDetailViewModel = viewModel()
+    onHomeClick: () -> Unit = {},
+    onTypeFilterClick: (String) -> Unit = {},
+    viewModel: ItemDetailViewModel = viewModel(),
+    mainViewModel: MainViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val itemTypes by mainViewModel.itemTypes.collectAsState()
 
     LaunchedEffect(itemId) {
         viewModel.loadItemDetail(itemId)
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        Slate900,
-                        Slate950
+    Scaffold(
+        topBar = {
+            AppTopBar(
+                title = "Ragnarok Database",
+                showBackButton = true,
+                onBackClick = onNavigateBack,
+                onHomeClick = onHomeClick,
+                itemTypes = itemTypes,
+                onTypeSelected = onTypeFilterClick
+            )
+        },
+        containerColor = Slate950
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Slate900,
+                            Slate950
+                        )
                     )
                 )
-            )
-    ) {
+        ) {
         when (val state = uiState) {
             is ItemDetailUiState.Loading -> {
                 Box(
@@ -88,6 +108,7 @@ fun ItemDetailScreen(
                     onNavigateBack = onNavigateBack
                 )
             }
+        }
         }
     }
 }
@@ -162,23 +183,6 @@ fun ItemDetailContent(
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
     ) {
-        // Top App Bar
-        TopAppBar(
-            title = { },
-            navigationIcon = {
-                IconButton(onClick = onNavigateBack) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back",
-                        tint = Slate200
-                    )
-                }
-            },
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = Slate900.copy(alpha = 0.95f)
-            )
-        )
-
         // Item Image
         Box(
             modifier = Modifier

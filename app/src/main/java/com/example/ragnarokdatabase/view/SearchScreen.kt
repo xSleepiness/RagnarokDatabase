@@ -8,7 +8,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
@@ -25,6 +24,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.ragnarokdatabase.model.Item
 import com.example.ragnarokdatabase.ui.theme.*
+import com.example.ragnarokdatabase.view.components.AppTopBar
+import com.example.ragnarokdatabase.viewmodel.MainViewModel
 import com.example.ragnarokdatabase.viewmodel.SearchUiState
 import com.example.ragnarokdatabase.viewmodel.SearchViewModel
 
@@ -33,11 +34,15 @@ import com.example.ragnarokdatabase.viewmodel.SearchViewModel
 fun SearchScreen(
     initialQuery: String = "",
     onNavigateBack: () -> Unit,
+    onHomeClick: () -> Unit,
+    onTypeFilterClick: (String) -> Unit,
     onItemClick: (Int) -> Unit,
-    viewModel: SearchViewModel
+    viewModel: SearchViewModel,
+    mainViewModel: MainViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
+    val itemTypes by mainViewModel.itemTypes.collectAsState()
 
     // Set initial query and trigger search if provided (only once on first composition)
     LaunchedEffect(Unit) {
@@ -46,37 +51,35 @@ fun SearchScreen(
         }
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        Slate900,
-                        Slate950
+    Scaffold(
+        topBar = {
+            AppTopBar(
+                title = "Ragnarok Database",
+                showBackButton = true,
+                onBackClick = onNavigateBack,
+                onHomeClick = onHomeClick,
+                itemTypes = itemTypes,
+                onTypeSelected = onTypeFilterClick
+            )
+        },
+        containerColor = Slate950
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Slate900,
+                            Slate950
+                        )
                     )
                 )
-            )
-    ) {
-        Column(
-            modifier = Modifier.fillMaxSize()
         ) {
-            // Top App Bar with Search
-            TopAppBar(
-                title = { },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
-                            tint = Slate200
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Slate900.copy(alpha = 0.95f)
-                )
-            )
+            Column(
+                modifier = Modifier.fillMaxSize()
+            ) {
 
             // Search Bar
             OutlinedTextField(
@@ -154,6 +157,7 @@ fun SearchScreen(
                     }
                 }
             }
+        }
         }
     }
 }
@@ -264,7 +268,7 @@ fun SearchResultsList(
     onItemClick: (Int) -> Unit
 ) {
     val listState = rememberLazyListState()
-    
+
     LazyColumn(
         state = listState,
         modifier = Modifier

@@ -3,6 +3,7 @@ package com.example.ragnarokdatabase.data.repository
 import com.example.ragnarokdatabase.data.remote.NetworkModule
 import com.example.ragnarokdatabase.data.remote.RagnarokApiService
 import com.example.ragnarokdatabase.model.Item
+import com.example.ragnarokdatabase.model.ItemType
 import com.example.ragnarokdatabase.model.PopularItem
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -62,6 +63,23 @@ class ItemRepository(
      */
     suspend fun getItemCount(): Int {
         return api.getItemCount().totalItems
+    }
+
+    /**
+     * Gets all available item types with their counts.
+     */
+    suspend fun getItemTypes(): List<ItemType> {
+        return api.getItemTypes().types
+    }
+
+    /**
+     * Filters items by type with pagination.
+     * @param itemType The type of items to filter
+     * @param skip Number of items to skip (for pagination)
+     * @param limit Number of items to return
+     */
+    suspend fun filterItemsByType(itemType: String, skip: Int = 0, limit: Int = 50): List<Item> {
+        return api.filterItemsByType(itemType, skip, limit)
     }
 }
 

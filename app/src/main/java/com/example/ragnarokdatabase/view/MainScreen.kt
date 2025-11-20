@@ -32,6 +32,7 @@ import coil.compose.AsyncImage
 import com.example.ragnarokdatabase.R
 import com.example.ragnarokdatabase.model.PopularItem
 import com.example.ragnarokdatabase.ui.theme.*
+import com.example.ragnarokdatabase.view.components.AppTopBar
 import com.example.ragnarokdatabase.viewmodel.MainUiState
 import com.example.ragnarokdatabase.viewmodel.MainViewModel
 
@@ -42,34 +43,49 @@ val LilitaOneFont = FontFamily(Font(R.font.lilitaone_regular))
 fun MainScreen(
     onItemClick: (Int) -> Unit = {},
     onSearchClick: (String) -> Unit = {},
+    onTypeFilterClick: (String) -> Unit = {},
     viewModel: MainViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val selectedPeriod by viewModel.selectedPeriod.collectAsState()
     val totalItemsCount by viewModel.totalItemsCount.collectAsState()
+    val itemTypes by viewModel.itemTypes.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
     val focusManager = LocalFocusManager.current
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        Slate900,
-                        Slate950
-                    )
-                )
+    Scaffold(
+        topBar = {
+            AppTopBar(
+                title = "Ragnarok Database",
+                showBackButton = false,
+                onHomeClick = { /* Already on home */ },
+                itemTypes = itemTypes,
+                onTypeSelected = onTypeFilterClick
             )
-    ) {
-        LazyColumn(
+        },
+        containerColor = Slate950
+    ) { paddingValues ->
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(paddingValues)
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Slate900,
+                            Slate950
+                        )
+                    )
+                )
         ) {
-            item {
-                Spacer(modifier = Modifier.height(60.dp))
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                item {
+                    Spacer(modifier = Modifier.height(24.dp))
 
                 // Header
                 Text(
@@ -215,6 +231,7 @@ fun MainScreen(
                 Spacer(modifier = Modifier.height(40.dp))
             }
         }
+        }
     }
 }
 
@@ -331,6 +348,83 @@ fun PopularItemCard(item: PopularItem, onItemClick: () -> Unit) {
                     style = MaterialTheme.typography.labelSmall,
                     color = Amber400,
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ItemTypesDropdown(
+    itemTypes: List<com.example.ragnarokdatabase.model.ItemType>,
+    onTypeSelected: (String) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = it }
+    ) {
+        OutlinedTextField(
+            value = "Filter by Type",
+            onValueChange = {},
+            readOnly = true,
+            modifier = Modifier
+                .fillMaxWidth()
+                .menuAnchor(),
+            trailingIcon = {
+                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+            },
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = Slate100,
+                unfocusedTextColor = Slate200,
+                focusedBorderColor = Amber400,
+                unfocusedBorderColor = Slate600,
+                focusedTrailingIconColor = Amber400,
+                unfocusedTrailingIconColor = Slate500
+            ),
+            shape = RoundedCornerShape(12.dp)
+        )
+
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier.background(Slate800)
+        ) {
+            itemTypes.forEach { itemType ->
+                DropdownMenuItem(
+                    text = {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = itemType.type,
+                                color = Slate100,
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                            Surface(
+                                shape = RoundedCornerShape(6.dp),
+                                color = Amber400.copy(alpha = 0.2f)
+                            ) {
+                                Text(
+                                    text = "${itemType.count}",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = Amber400,
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                )
+                            }
+                        }
+                    },
+                    onClick = {
+                        onTypeSelected(itemType.type)
+                        expanded = false
+                    },
+                    colors = MenuDefaults.itemColors(
+                        textColor = Slate100
+                    )
                 )
             }
         }

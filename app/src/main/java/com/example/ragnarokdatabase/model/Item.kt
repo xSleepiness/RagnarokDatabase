@@ -120,3 +120,36 @@ data class ItemCountResponse(
     val totalItems: Int
 )
 
+data class ItemType(
+    @SerializedName("type")
+    val type: String,
+
+    @SerializedName("count")
+    val count: Int
+)
+
+data class ItemTypesResponse(
+    @SerializedName("total_types")
+    val totalTypes: Int,
+
+    @SerializedName("types")
+    val types: List<ItemType>
+)
+
+data class FilteredItemsResponse(
+    @SerializedName("type")
+    val type: String,
+
+    @SerializedName("total")
+    val total: Int,
+
+    @SerializedName("skip")
+    val skip: Int,
+
+    @SerializedName("limit")
+    val limit: Int,
+
+    @SerializedName("items")
+    val items: List<Item>
+)
+
